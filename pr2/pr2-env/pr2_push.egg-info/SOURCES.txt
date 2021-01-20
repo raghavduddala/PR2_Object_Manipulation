@@ -1,0 +1,7 @@
+README.md
+setup.py
+pr2_push.egg-info/PKG-INFO
+pr2_push.egg-info/SOURCES.txt
+pr2_push.egg-info/dependency_links.txt
+pr2_push.egg-info/requires.txt
+pr2_push.egg-info/top_level.txt
