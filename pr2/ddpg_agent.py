@@ -15,6 +15,8 @@ class DDPGAgent:
     def __init__(self, base_env, dim_dyn_par, gamma, tau, actor_lr, critic_lr):
         self.dim_states = base_env.observation_space['observation'].shape[0] #  25D
         self.dim_actions = base_env.action_space.shape[0]  #7D
+        print(base_env.action_space.high)
+        print(base_env.action_space.low)
         self.dim_goal = base_env.observation_space['desired_goal'].shape[0] #3D
         self.dim_dyn_par = dim_dyn_par
         self.gamma = gamma
@@ -75,9 +77,9 @@ class DDPGAgent:
 
 
     def policy_update(self,replay_buffer, batch_size, episode_length):
-        #########First Implementation which is wrong########
+        # #########First Implementation which is wrong########
         # sample_eps = replay_buffer.sample_episode_batch(batch_size)
-        # # print("no.of sampled episodes:",len(sample_eps))
+        # # print(" sampled episodes:",sample_eps)
         # dim_row = batch_size*episode_length
         # state_batch = np.zeros((dim_row, self.dim_states))
         # action_batch = np.zeros((dim_row, self.dim_actions))
@@ -95,32 +97,59 @@ class DDPGAgent:
         #     action_batch[i*episode_length:(i+1)*episode_length] = action_arr
         #     reward_batch[i*episode_length:(i+1)*episode_length] = reward_arr
         #     obs_batch[i*episode_length:(i+1)*episode_length] = obs_arr
-        #     # print(sample_eps[i].desired_goal())
+        #     # print("Goal from sampled episodes",sample_eps[i].desired_goal())
         #     goal_batch[i*episode_length:(i+1)*episode_length] = sample_eps[i].desired_goal()
         #     done_batch[i*episode_length:(i+1)*episode_length] = done_arr
         #     env_par_batch[i*episode_length:(i+1)*episode_length] = sample_eps[i].environment_parameters()
+            # print("environment from sampled episodes",sample_eps[i].environment_parameters())
 
 
-        # state_batch = torch.Tensor(state_batch)
-        # action_batch = torch.Tensor(action_batch)
-        # reward_batch = torch.Tensor(reward_batch)
-        # obs_batch = torch.Tensor(obs_batch)
-        # goal_batch = torch.Tensor(goal_batch)
-        # done_batch = torch.Tensor(done_batch)
-        # env_par_batch = torch.Tensor(env_par_batch)
             # Args for critic forward : env_parameters,goal,action,state
         ####################Second IMplementation
         sampled_eps_ids = replay_buffer.sample_episode_batch(batch_size)
-
-
-
+        episodes_sampled = replay_buffer.get_sampled_episodes(sampled_eps_ids)
+        state_batch = []
+        action_batch = []
+        reward_batch = []
+        obs_batch = []
+        goal_batch = []
+        done_batch = []
+        env_par_batch = []
+        assert(len(episodes_sampled)) == batch_size
+        for i in range(batch_size):
+            experience = episodes_sampled[i].sample_random_experience()
+            state_batch.append(experience[0][0])
+            action_batch.append(experience[0][1])
+            reward_batch.append(experience[0][2])
+            obs_batch.append(experience[0][3])
+            done_batch.append(experience[0][5])
+            goal_sampled = episodes_sampled[i].desired_goal()
+            goal_batch.append(goal_sampled)
+            env_par_sampled = episodes_sampled[i].environment_parameters()
+            env_par_batch.append(env_par_sampled)
         ##########################################
+        state_batch = torch.Tensor(state_batch)
+        action_batch = torch.Tensor(action_batch)
+        reward_batch = torch.Tensor(reward_batch)
+        obs_batch = torch.Tensor(obs_batch)
+        goal_batch = torch.Tensor(goal_batch)
+        done_batch = torch.Tensor(done_batch)
+        env_par_batch = torch.Tensor(env_par_batch)
 
         critic_value = self.critic.forward(env_par_batch,goal_batch,action_batch,state_batch)
+        # print("Critic value shape", critic_value.shape)
         action_plus_batch = self.target_actor.forward(goal_batch,state_batch)
-        critic_target_value = self.target_critic.forward(env_par_batch, goal_batch,action_plus_batch,state_batch)
+        critic_target_value = self.target_critic.forward(env_par_batch, goal_batch,action_plus_batch.detach(),state_batch)
         # print("crtitic target value shape", critic_target_value.shape)
-        y_value = torch.reshape(reward_batch,(dim_row,1)) + (1-torch.reshape(done_batch,(dim_row,1)))*self.gamma*critic_target_value
+        
+        ###Original Implementation of y_value 
+        # y_value = torch.reshape(reward_batch,(dim_row,1)) + (1-torch.reshape(done_batch,(dim_row,1)))*self.gamma*critic_target_value
+        ### Changed IMplementation of y_value
+        y_valuepart1 = torch.reshape(reward_batch,(batch_size,1))
+        # print("y_valuepart1 shape", y_valuepart1.shape)
+        y_valuepart2 = self.gamma*critic_target_value
+        # print("y_valuepart2 shape",y_valuepart2.shape) (1-torch.reshape(done_batch,(batch_size,1)))
+        y_value = y_valuepart1 + y_valuepart2
         # print("y_value shape", y_value.shape)
         # y_value = []
         # for j in range(dim_row):
@@ -132,8 +161,9 @@ class DDPGAgent:
         # y_value = torch.Tensor(y_value)
         # y_value = torch.reshape(y_value,(dim_row,1))
 
-        loss_criterion = nn.MSELoss()
-        critic_loss = loss_criterion(critic_value,y_value)
+        loss_criterion = nn.L1Loss()
+        critic_loss = loss_criterion(critic_value,y_value).mean()
+        # print("Critic loss value", critic_loss)
 
         #Initialising the Optimizer for Critic
         optim.Adam(self.critic.parameters(),lr = self.critic_lr).zero_grad()
@@ -143,7 +173,7 @@ class DDPGAgent:
 
         action_policy_batch = self.actor.forward(goal_batch,state_batch)
         policy_loss = -self.critic.forward(env_par_batch,goal_batch,action_policy_batch,state_batch).mean()
-
+        # print("Policy LOss Value", policy_loss)
         #Initialising the Optimizer for Actor
         optim.Adam(self.actor.parameters(),lr = self.actor_lr).zero_grad()
         #Calculating Backward Loss and then performing one step of optimization
@@ -162,8 +192,7 @@ class DDPGAgent:
         for target_parameters, main_parameters in zip(self.target_critic.parameters(), self.critic.parameters()):
             target_parameters.data.copy_(main_parameters.data*self.tau + target_parameters.data*(1.0-self.tau))
 
-
-
+        return critic_loss, policy_loss
 #  State-dict is a python dictionary object that maps each layer with its
 #  parameter tensor
 # load_state_dict/ save_state_dict are methods used for saving and loading 
@@ -177,3 +206,5 @@ class DDPGAgent:
     def load_model(self, output):
         self.actor.load_state_dict(torch.load('{}/actor.pkl'.format(output)))
         self.critic.load_state_dict(torch.load('{}/critic.pkl'.format(output)))
+
+    

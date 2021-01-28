@@ -21,10 +21,10 @@ class DDPGCritic(nn.Module):
         self.num_dyn_par = dyn_parameters_dim
         self.goal_dim = goal_dim
         self.fc1_inp_dim = self.num_dyn_par + self.goal_dim + self.num_actions
-        self.fc1 = nn.Linear(self.num_states + self.fc1_inp_dim,400)
-        self.fc2 = nn.Linear(400,300)
-        self.fc3 = nn.Linear(300,100)
-        self.fc4 = nn.Linear(100,1)
+        self.fc1 = nn.Linear(self.num_states + self.fc1_inp_dim,256)
+        self.fc2 = nn.Linear(256,128)
+        self.fc3 = nn.Linear(128,32)
+        self.fc4 = nn.Linear(32,1)
 
 
     def forward(self,dyn_parameters,goal,cur_action,state):
@@ -54,10 +54,10 @@ class DDPGActor(nn.Module):
         super(DDPGActor,self).__init__()
         self.num_states = num_states
         self.goal_dim = goal_dim
-        self.fc1 = nn.Linear(self.goal_dim + self.num_states,400)
-        self.fc2 = nn.Linear(400,300)
-        self.fc3 = nn.Linear(300,100)
-        self.fc4 = nn.Linear(100,7)
+        self.fc1 = nn.Linear(self.goal_dim + self.num_states,256)
+        self.fc2 = nn.Linear(256,128)
+        self.fc3 = nn.Linear(128,32)
+        self.fc4 = nn.Linear(32,7)
 
     def forward(self,goal,state):
         """

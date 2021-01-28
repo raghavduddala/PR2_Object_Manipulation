@@ -11,6 +11,7 @@ class RandomizeEnvironment:
         self.dyn_par_ranges = dyn_par_ranges
         self.len_dyn_par = 0
         self.env_param = []
+        random.seed(123)
 
     def sample(self):
         low_mass = self.dyn_par_ranges[0][0]

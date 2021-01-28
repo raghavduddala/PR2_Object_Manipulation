@@ -61,7 +61,7 @@ class PR2Env(robot_env.RobotEnv):
         # reward is basically negative
         if achieved_goal.shape == goal.shape:
             dist = np.linalg.norm(achieved_goal-goal,axis=-1) # dimensions of the goal is 3 (Cartesian coordinates)
-            if self.reward_type == "sparse":
+            if self.reward_type == 'sparse':
                 return -(dist > self.dist_threshold).astype(np.float32)
             else:
                 return -dist
@@ -91,11 +91,16 @@ class PR2Env(robot_env.RobotEnv):
         # https://www.clearpathrobotics.com/assets/downloads/pr2/pr2_manual_r321.pdf
         
         assert action.shape == (7,)
-        action_ctrl = action  # Unsure if action value changes // can use action.copy
-        joint_pos_ctrl = action_ctrl[:7]
+        action = action.copy()  # Unsure if action value changes // can use action.copy
+        joint_pos_ctrl = action[:4]
+        passive_pos_ctrl = [0., -1., 0.]
+        #Rescaling joint angles by a facto of 1/20
+        # joint_pos_ctrl *= 0.05 # Limiting the max joint angles as in fetch_env to see
+        #any change in the applied torque
         # grip_ctrl = action_ctrl[7:] #Since no Gripper Control output is given by NN in push task
-        robot_utils.set_joint_action(self.sim,joint_pos_ctrl) 
-        
+        action = np.concatenate([joint_pos_ctrl, passive_pos_ctrl])
+        # robot_utils.set_joint_action(self.sim,joint_pos_ctrl) 
+        robot_utils.set_joint_action(self.sim,action)
 
 
     def _is_success(self,achieved_goal,goal):
@@ -221,7 +226,10 @@ class PR2Env(robot_env.RobotEnv):
         # or given pose in PR2PushEnv/PR2ReachEnv Child class
         for name, value in initial_qpos.items():
             self.sim.data.set_joint_qpos(name,value)
-        self.sim.forward()
+        
+        # self.sim.forward()
+
+    
         ##After setting up the environment -- to move it for some timesteps
         for _ in range(5):
             self.sim.step()

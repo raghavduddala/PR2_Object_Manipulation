@@ -8,15 +8,15 @@ from pr2_push.env import pr2_env
 MODEL_XML_PATH = '/home/raghav/mujoco-pr2/pr2/pr2_reach.xml'
 
 class PR2ReachEnv(pr2_env.PR2Env, utils.EzPickle):
-    def __init__(self,reward_type = "sparse"):
+    def __init__(self, reward_type = 'sparse'):
         initial_qpos = {
             "r_shoulder_pan_joint" : 0.15 ,
             "r_shoulder_lift_joint" : 0.65 , 
-            "r_upper_arm_roll_joint": 0.0 , 
-            "r_elbow_flex_joint" : -1.05 ,
-            "r_forearm_roll_joint" : 0.0 ,
-            "r_wrist_flex_joint" : 0.0 , 
-            "r_wrist_roll_joint" : 0.0 ,
+            "r_upper_arm_roll_joint": 0 , 
+            "r_elbow_flex_joint" : -1 ,
+            "r_forearm_roll_joint" : 0,
+            "r_wrist_flex_joint" : -1 , 
+            "r_wrist_roll_joint" : 0,
             # "puck_joint" : []
         }
         pr2_env.PR2Env.__init__(
@@ -87,9 +87,19 @@ class PR2ReachEnv(pr2_env.PR2Env, utils.EzPickle):
     #     pass
 
 
+    """
+    Important Args Changes:
+    before 27th January Initial Qpos: 
+    np.array([0.15,0.65,0,-1.05,0,0,0])
+    Changes on 27th January Initial QPos;
+     np.array([0.15,-0.4,-3,-1.05,0,-1,0])
+    """
 
 
     # np.array([0.15,0.65,0,-1.05,0,0,0])
+    # 0.15,-0.4,-3,-1.05,0,-1,0
+    # np.array([-0.6,0,-2,-1, 0,-1,0])
+    # np.array([0.15,0.65,0,-1,0,-1,0])
     #Have to set the randomization for PID control coefficients
 
     ## getattr() is a built in python function/method that returns the 

@@ -16,8 +16,8 @@ import numpy as np
 
 
 # env = gym.make('HandManipulateBlock-v0')
-env = gym.make("FetchPush-v1")
-# env = gym.make("FetchReach-v1")
+# env = gym.make("FetchPush-v1")
+env = gym.make("FetchReach-v1")
 
 # env = gym.make('Custom_inverted_pendulum-v1')
 # print(sim.data.ctrl)
@@ -25,7 +25,9 @@ env.reset()
 obs_list = []
 for _ in range(1000):
     env.render()
-    obs, reward, done, info = env.step(env.action_space.sample())
+    action = env.action_space.sample()
+    print("Sampled Action", action)
+    obs, reward, done, info = env.step(action)
     obs_list.append(obs)
 env.close()
 

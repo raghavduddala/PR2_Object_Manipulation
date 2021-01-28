@@ -151,7 +151,11 @@ print(sim1.model.nv)
 des_qvel = np.zeros(7)
 # des_qpos = np.zeros(7)
 # des_qpos = np.array([-0.655,-0.123,-0.8500,-0.567,0.25,0.5,0])
-des_qpos = np.array([0.15,0.65,0,-1.05,0,0,0])
+
+ # Current Default value on 27th Jan used in pr2_env
+des_qpos = np.array([0.15,0.65,0,-1,0,-1,0])
+# des_qpos = np.array([-0.6,0,-2,-1, 0,-1,0])
+# Second joint to lift : .15, -0.4, -3, -1.05, 0 -1, 0
 #  des_qpos = np.array([-0,-0.65,-4.5,-3,-1.570,-2.093,2])
 # des_qpos_arr = np.zeros((sim_horizon,7))
 des_qpos_arr = np.transpose([des_qpos]*sim_horizon)
@@ -379,6 +383,7 @@ for i in range(sim_horizon):
         e_int[i,j] = e_int[i-1,j] + e*dt
         pid_output= pid_controller(j,kp_arr,kd_arr,ki_arr,e,e_dot,e_int[i,j],bias_force[i,j])
         # sim1.data.ctrl[j] = pid_output
+        
         if pid_output > sim1.model.actuator_ctrlrange[j][1]:
             sim1.data.ctrl[j] = sim1.model.actuator_ctrlrange[j][1]
         elif pid_output < sim1.model.actuator_ctrlrange[j][0]:
