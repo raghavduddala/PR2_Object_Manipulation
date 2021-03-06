@@ -16,3 +16,8 @@ Code will updated soon!
 ![Learning Curve](https://user-images.githubusercontent.com/12818429/110194382-2c5dd480-7ded-11eb-9e8a-3ccc7cebd210.png)
 
 The Learning curve with the Hindsight Experience Replay and the RDPG
+
+
+https://user-images.githubusercontent.com/12818429/110194968-5a90e380-7df0-11eb-8797-551ab8df8717.mp4
+
+
