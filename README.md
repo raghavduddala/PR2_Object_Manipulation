@@ -17,7 +17,7 @@ Code will updated soon!
 
 The Learning curve with the Hindsight Experience Replay and the RDPG
 
-
+Video of a Successful Implementation
 https://user-images.githubusercontent.com/12818429/110194968-5a90e380-7df0-11eb-8797-551ab8df8717.mp4
 
 
