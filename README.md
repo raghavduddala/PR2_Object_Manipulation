@@ -12,6 +12,6 @@ The Recurrent Deterministic Policy Gradient(RDPG) now works on the Fetch Reach G
 Code will updated soon!
 
 
-The Learning curve with the Hindsight Experience Replay and the RDPG
-[Learning Curve](https://user-images.githubusercontent.com/12818429/110194382-2c5dd480-7ded-11eb-9e8a-3ccc7cebd210.png)
 
+[Learning Curve](https://user-images.githubusercontent.com/12818429/110194382-2c5dd480-7ded-11eb-9e8a-3ccc7cebd210.png)
+The Learning curve with the Hindsight Experience Replay and the RDPG
